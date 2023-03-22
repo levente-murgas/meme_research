@@ -213,10 +213,10 @@ with open('memes.txt', 'r') as f:
     except Exception as e:
         with open("stopped_here.txt", "w") as f:
             f.write(meme_urls[index])
+        df = pd.DataFrame.from_dict(memes)
+        df.to_csv('memes.csv',mode='a', header=False, index=False)
 
 
-df = pd.DataFrame.from_dict(memes)
-df.to_csv('memes.csv')
 # At the end of your script, signal that it has finished successfully and there is no need to restart it
 with open('success.txt', 'w') as f:
     f.write('success')
