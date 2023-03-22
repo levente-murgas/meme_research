@@ -3,6 +3,7 @@ import random
 import time
 import pandas as pd
 import re
+import os
 from bs4 import BeautifulSoup
 
 # set headers to mimic browser behavior
@@ -122,80 +123,101 @@ def extract_ref_image(soup: BeautifulSoup,url: str) -> str:
     return "NaN"
 
 def extract_all_images(url: str) -> list:
-    name = url.split('/')[-1]
-    ## Get all the photos related to the meme
-    url += "/photos"
-    images = []
-    page_cnt = 1
-    found = True
-    while found:
-        found = False
-        random_number = random.randint(2, 10)
-        time.sleep(random_number)
-        newurl = url + "/page/" + str(page_cnt)
-        response = requests.get(newurl, headers=headers)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.content, "html.parser")
-            target_divs = soup.find_all('div', class_= 'item')
-            for div in target_divs:
-                src = div.find('img')['data-src']
-                found = True
-                # If src ends with .jpg, .jpeg or .png, add it to the list
-                if src.endswith('.jpg') or src.endswith('.png') or src.endswith('.jpeg'):
-                    format = src.split('.')[-1]
-                    src = src.replace('masonry', 'original')
-                    response = requests.get(src, headers=headers)
-                    if response.status_code == 200:
-                        with open(f"imgs\{name}_{len(images)}.{format}", "wb") as f:
-                            f.write(response.content)
-                            images.append(f"{name}_{len(images)}.{format}")
-                            print("Image downloaded successfully!")
-                    else:
-                        print("Error downloading image")
-        page_cnt += 1
+    try: 
+        name = url.split('/')[-1]
+        ## Get all the photos related to the meme
+        url += "/photos"
+        images = []
+        page_cnt = 1
+        found = True
+        while found:
+            found = False
+            random_number = random.randint(2, 10)
+            time.sleep(random_number)
+            newurl = url + "/page/" + str(page_cnt)
+            response = requests.get(newurl, headers=headers)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, "html.parser")
+                target_divs = soup.find_all('div', class_= 'item')
+                for div in target_divs:
+                    src = div.find('img')['data-src']
+                    found = True
+                    # If src ends with .jpg, .jpeg or .png, add it to the list
+                    if src.endswith('.jpg') or src.endswith('.png') or src.endswith('.jpeg'):
+                        format = src.split('.')[-1]
+                        src = src.replace('masonry', 'original')
+                        response = requests.get(src, headers=headers)
+                        if response.status_code == 200:
+                            with open(f"imgs\{name}_{len(images)}.{format}", "wb") as f:
+                                f.write(response.content)
+                                images.append(f"{name}_{len(images)}.{format}")
+                                print("Image downloaded successfully!")
+                        else:
+                            print("Error downloading image")
+            page_cnt += 1
 
-    return images
+        return images
+    except Exception as e:
+        raise e
+
 
 def extract_data(soup: BeautifulSoup,url: str) -> dict:
-    name = extract_name(soup)
-    year = extract_year(soup)
-    type_of_meme = extract_type(soup)
-    origin = extract_origin(soup)
-    tags = extract_tags(soup)
-    about = extract_about(soup)
-    origin_article = extract_origin_article(soup)
-    spread = extract_spread(soup)
-    ref_image = extract_ref_image(soup,url)
-    images = extract_all_images(url)
-    meme = {
-        "name": name,
-        "year": year,
-        "type": type_of_meme,
-        "origin": origin,
-        "tags": tags,
-        "about": about,
-        "origin_article": origin_article,
-        "spread": spread,
-        "ref_image": ref_image,
-        "related_images": images,
-        "example_url": url
-    }
-    return meme
+    try:
+        name = extract_name(soup)
+        year = extract_year(soup)
+        type_of_meme = extract_type(soup)
+        origin = extract_origin(soup)
+        tags = extract_tags(soup)
+        about = extract_about(soup)
+        origin_article = extract_origin_article(soup)
+        spread = extract_spread(soup)
+        ref_image = extract_ref_image(soup,url)
+        images = extract_all_images(url)
+        meme = {
+            "name": name,
+            "year": year,
+            "type": type_of_meme,
+            "origin": origin,
+            "tags": tags,
+            "about": about,
+            "origin_article": origin_article,
+            "spread": spread,
+            "ref_image": ref_image,
+            "related_images": images,
+            "example_url": url
+        }
+        return meme
+    except Exception as e:
+        raise e
 
 with open('memes.txt', 'r') as f:
-    meme_urls = f.readlines()
-    for meme in meme_urls:
-        random_number = random.randint(2, 10)
-        time.sleep(random_number)
-        url = "https://knowyourmeme.com" + meme.strip()
-        # make a request to the website with headers
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.content, "html.parser")
-            meme = extract_data(soup, url)
-            memes.append(meme)
-        else:
-            print(f"Error: {response.status_code}")
+    try:
+        meme_urls = f.readlines()
+        if os.path.exists("stopped_here.txt"):
+            with open("stopped_here.txt", "r") as f:
+                start_index = meme_urls.index(f.read())
+            meme_urls = meme_urls[start_index:]
+            
+        for index, meme in enumerate(meme_urls):
+            random_number = random.randint(2, 10)
+            time.sleep(random_number)
+            url = "https://knowyourmeme.com" + meme.strip()
+            # make a request to the website with headers
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, "html.parser")
+                meme = extract_data(soup, url)
+                memes.append(meme)
+            else:
+                print(f"Error: {response.status_code}")
+    except Exception as e:
+        with open("stopped_here.txt", "w") as f:
+            f.write(meme_urls[index])
+
 
 df = pd.DataFrame.from_dict(memes)
 df.to_csv('memes.csv')
+# At the end of your script, signal that it has finished successfully and there is no need to restart it
+with open('success.txt', 'w') as f:
+    f.write('success')
+
