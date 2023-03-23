@@ -3,6 +3,7 @@ import random
 import time
 import pandas as pd
 import re
+import concurrent.futures
 import os
 from bs4 import BeautifulSoup
 
@@ -122,6 +123,18 @@ def extract_ref_image(soup: BeautifulSoup,url: str) -> str:
     
     return "NaN"
 
+def download_image(src, file_name, index, format):
+    response = requests.get(src, headers=headers)
+    if response.status_code == 200:
+        with open(f"imgs\{file_name}_{index}.{format}", "wb") as f:
+            f.write(response.content)
+            print("Image downloaded successfully!")
+        return True
+    else:
+        print("Error downloading image")
+        return False
+
+
 def extract_all_images(url: str) -> list:
     try: 
         name = url.split('/')[-1]
@@ -132,30 +145,29 @@ def extract_all_images(url: str) -> list:
         found = True
         while found:
             found = False
-            random_number = random.randint(2, 10)
+            random_number = random.random()
             time.sleep(random_number)
             newurl = url + "/page/" + str(page_cnt)
             response = requests.get(newurl, headers=headers)
+
             if response.status_code == 200:
                 soup = BeautifulSoup(response.content, "html.parser")
                 target_divs = soup.find_all('div', class_= 'item')
-                for div in target_divs:
+                sources = []
+                for index, div in enumerate(target_divs):
                     src = div.find('img')['data-src']
                     found = True
                     # If src ends with .jpg, .jpeg or .png, add it to the list
                     if src.endswith('.jpg') or src.endswith('.png') or src.endswith('.jpeg'):
                         format = src.split('.')[-1]
                         src = src.replace('masonry', 'original')
-                        response = requests.get(src, headers=headers)
-                        if response.status_code == 200:
-                            with open(f"imgs\{name}_{len(images)}.{format}", "wb") as f:
-                                f.write(response.content)
-                                images.append(f"{name}_{len(images)}.{format}")
-                                print("Image downloaded successfully!")
-                        else:
-                            print("Error downloading image")
+                        t = (src, name, index, format)
+                        sources.append(t)
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    for t in sources:
+                        if executor.submit(download_image,t[0], t[1], t[2], t[3]).result():
+                            images.append("{}_{}.{}".format(t[1], t[2], t[3]))
             page_cnt += 1
-
         return images
     except Exception as e:
         raise e
@@ -199,7 +211,7 @@ with open('memes.txt', 'r') as f:
             meme_urls = meme_urls[start_index:]
             
         for index, meme in enumerate(meme_urls):
-            random_number = random.randint(2, 10)
+            random_number = random.random()
             time.sleep(random_number)
             url = "https://knowyourmeme.com" + meme.strip()
             # make a request to the website with headers
@@ -208,13 +220,16 @@ with open('memes.txt', 'r') as f:
                 soup = BeautifulSoup(response.content, "html.parser")
                 meme = extract_data(soup, url)
                 memes.append(meme)
+                print(f"Finished {index} out of {len(meme_urls)}")
             else:
                 print(f"Error: {response.status_code}")
     except Exception as e:
+        print(e)
         with open("stopped_here.txt", "w") as f:
             f.write(meme_urls[index])
         df = pd.DataFrame.from_dict(memes)
         df.to_csv('memes.csv',mode='a', header=False, index=False)
+        exit(1)
 
 
 # At the end of your script, signal that it has finished successfully and there is no need to restart it
