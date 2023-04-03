@@ -218,8 +218,10 @@ with open('memes.txt', 'r') as f:
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
                 soup = BeautifulSoup(response.content, "html.parser")
-                meme = extract_data(soup, url)
-                memes.append(meme)
+                # meme = extract_data(soup, url)
+                # memes.append(meme)
+                extract_ref_image(soup, url)
+                extract_all_images(url)
                 print(f"Finished {index} out of {len(meme_urls)}")
             else:
                 print(f"Error: {response.status_code}")
