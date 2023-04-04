@@ -12,7 +12,15 @@ headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
 }
 
+# meme metadata for dataframe
 memes = []
+
+# set your save folder for the images here
+save_folder = "D:\Memes2023"
+
+# create new exception class from base class
+class MemeEntryException(Exception):
+    pass
 
 def extract_name(soup: BeautifulSoup) -> str:
     return soup.find("h1").text.strip()
@@ -114,7 +122,7 @@ def extract_ref_image(soup: BeautifulSoup,url: str) -> str:
         response = requests.get(image_url)
 
         if response.status_code == 200:
-            with open(f"imgs\{name}_ref.{format}", "wb") as f:
+            with open(f"{save_folder}\{name}_ref.{format}", "wb") as f:
                 f.write(response.content)
                 print("Image downloaded successfully!")
         else:
@@ -126,7 +134,7 @@ def extract_ref_image(soup: BeautifulSoup,url: str) -> str:
 def download_image(src, file_name, index, format):
     response = requests.get(src, headers=headers)
     if response.status_code == 200:
-        with open(f"imgs\{file_name}_{index}.{format}", "wb") as f:
+        with open(f"{save_folder}\{file_name}_{index}.{format}", "wb") as f:
             f.write(response.content)
             print("Image downloaded successfully!")
         return True
@@ -218,13 +226,33 @@ with open('memes.txt', 'r') as f:
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
                 soup = BeautifulSoup(response.content, "html.parser")
-                # meme = extract_data(soup, url)
-                # memes.append(meme)
-                extract_ref_image(soup, url)
-                extract_all_images(url)
+                meme = extract_data(soup, url)
+                memes.append(meme)
                 print(f"Finished {index} out of {len(meme_urls)}")
+            elif response.status_code == 403:
+                # If the response is 403, raise an exception
+                raise MemeEntryException("403 Error, your IP was banned.")
             else:
                 print(f"Error: {response.status_code}")
+    #If IP was banned exception is raised, write the last meme url to a file and exit the script entirely
+    except MemeEntryException as e:
+        print(e)
+        with open("stopped_here.txt", "w") as f:
+            f.write(meme_urls[index])
+        df = pd.DataFrame.from_dict(memes)
+        df.to_csv('memes.csv',mode='a', header=False, index=False)
+        with open('finished.txt', 'w') as f:
+            f.write('Ip was banned')
+        exit(2)
+
+    except KeyboardInterrupt as e:
+        print("You pressed Ctrl+C!")
+        with open("stopped_here.txt", "w") as f:
+            f.write(meme_urls[index])
+        df = pd.DataFrame.from_dict(memes)
+        df.to_csv('memes.csv',mode='a', header=False, index=False)
+        exit(3)
+
     except Exception as e:
         print(e)
         with open("stopped_here.txt", "w") as f:
@@ -234,7 +262,8 @@ with open('memes.txt', 'r') as f:
         exit(1)
 
 
+
 # At the end of your script, signal that it has finished successfully and there is no need to restart it
-with open('success.txt', 'w') as f:
+with open('finished.txt', 'w') as f:
     f.write('success')
 

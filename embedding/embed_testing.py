@@ -1,44 +1,65 @@
 import sys
 import os
-sys.path.append("../img2vec_pytorch")  # Adds higher directory to python modules path.
-from img_to_vec import Img2Vec
+import matplotlib.pyplot as plt
+import numpy as np
+#sys.path.append("../img2vec_pytorch")  # Adds higher directory to python modules path.
+from img2vec_pytorch import Img2Vec
 from PIL import Image
+import matplotlib.image as mpimg
 from sklearn.metrics.pairwise import cosine_similarity
 
 
-input_path = './test_images'
+input_path = './embedding/test_images'
+save_folder = './embedding/plots'
+max_size = 500
 
-print("Getting vectors for test images...\n")
-img2vec = Img2Vec()
 
-# For each test image, we store the filename and vector as key, value in a dictionary
-pics = {}
-for file in os.listdir(input_path):
-    filename = os.fsdecode(file)
-    img = Image.open(os.path.join(input_path, filename)).convert('RGB')
-    vec = img2vec.get_vec(img)
-    pics[filename] = vec
+def img_similarity(model: str):
+    img2vec = Img2Vec(cuda=True, model=model)
+    print("Getting vectors for test images...\n")
+    # For each test image, we store the filename and vector as key, value in a dictionary
+    pics = {}
+    images = []
+    for file in os.listdir(input_path):
+        filename = os.fsdecode(file)
+        images.append(filename)
+        img = Image.open(os.path.join(input_path, filename)).convert('RGB')
+        vec = img2vec.get_vec(img)
+        pics[filename] = vec
 
-available_filenames = ", ".join(pics.keys())
-pic_name = ""
-while pic_name != "exit":
-    pic_name = str(input("\nWhich filename would you like similarities for?\nAvailable options: " + available_filenames + "\n"))
+    # Create a numpy array to store the cosine similarity values between the images
+    cos_sim = np.zeros((len(pics), len(pics)))
 
-    try:
-        sims = {}
-        for key in list(pics.keys()):
-            if key == pic_name:
-                continue
+    for i, img1 in enumerate(pics.keys()):
+        for j, img2 in enumerate(pics.keys()):
+            # Calculate the cosine similarity
+            cos_sim[i][j] = cosine_similarity(pics[img1].reshape((1, -1)), pics[img2].reshape((1, -1)))[0][0]
 
-            sims[key] = cosine_similarity(pics[pic_name].reshape((1, -1)), pics[key].reshape((1, -1)))[0][0]
+    # Create a new figure and axis object
+    fig, ax = plt.subplots()
+    fig.set_size_inches(10, 10)
 
-        d_view = [(v, k) for k, v in sims.items()]
-        d_view.sort(reverse=True)
-        for v, k in d_view:
-            print(v, k)
+    cax = ax.matshow(cos_sim, interpolation='nearest', cmap='viridis', vmin=0, vmax=1)
 
-    except KeyError as e:
-        print('Could not find filename %s' % e)
+    # Show values inside the table
+    for (i, j), z in np.ndenumerate(cos_sim):
+        ax.text(j, i, '{:0.3f}'.format(z), ha='center', va='center')
 
-    except Exception as e:
-        print(e)
+    plt.xticks(range(0,len(images)),images, rotation=90)
+    plt.yticks(range(0,len(images)),images)
+    fig.colorbar(cax)
+    plt.title('Cosine Similarity of Images (' + model + ')')
+    plt.savefig(os.path.join(save_folder, model + '.png'))
+
+img_similarity('resnet-18')
+img_similarity('alexnet')
+img_similarity('vgg')
+img_similarity('densenet')
+img_similarity('efficientnet_b0')
+img_similarity('efficientnet_b1')
+img_similarity('efficientnet_b2')
+img_similarity('efficientnet_b3')
+img_similarity('efficientnet_b4')
+img_similarity('efficientnet_b5')
+img_similarity('efficientnet_b6')
+img_similarity('efficientnet_b7')
