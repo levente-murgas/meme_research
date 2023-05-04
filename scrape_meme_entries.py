@@ -6,6 +6,8 @@ import re
 import concurrent.futures
 import os
 from bs4 import BeautifulSoup
+#import tqdm for progress bar
+from tqdm import tqdm
 
 # set headers to mimic browser behavior
 headers = {
@@ -124,7 +126,7 @@ def extract_ref_image(soup: BeautifulSoup,url: str) -> str:
         if response.status_code == 200:
             with open(f"{save_folder}\{name}_ref.{format}", "wb") as f:
                 f.write(response.content)
-                print("Image downloaded successfully!")
+                # print("Image downloaded successfully!")
         else:
             print("Error downloading image")
         return f"{name}_ref.{format}"
@@ -136,7 +138,7 @@ def download_image(src, file_name, index, format):
     if response.status_code == 200:
         with open(f"{save_folder}\{file_name}_{index}.{format}", "wb") as f:
             f.write(response.content)
-            print("Image downloaded successfully!")
+            # print("Image downloaded successfully!")
         return True
     else:
         print("Error downloading image")
@@ -153,8 +155,9 @@ def extract_all_images(url: str) -> list:
         found = True
         while found:
             found = False
-            random_number = random.random()
-            time.sleep(random_number)
+            # if page_cnt % 5 == 0:
+            #     random_number = random.random()
+            #     time.sleep(random_number)
             newurl = url + "/page/" + str(page_cnt)
             response = requests.get(newurl, headers=headers)
 
@@ -172,7 +175,7 @@ def extract_all_images(url: str) -> list:
                         t = (src, name, index, format)
                         sources.append(t)
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    for t in sources:
+                    for t in tqdm(sources, total=len(sources), desc="Downloading images from page {}...".format(page_cnt), unit="images"):
                         if executor.submit(download_image,t[0], t[1], t[2], t[3]).result():
                             images.append("{}_{}.{}".format(t[1], t[2], t[3]))
             page_cnt += 1
@@ -217,10 +220,10 @@ with open('memes.txt', 'r') as f:
             with open("stopped_here.txt", "r") as f:
                 start_index = meme_urls.index(f.read())
             meme_urls = meme_urls[start_index:]
-            
-        for index, meme in enumerate(meme_urls):
-            random_number = random.random()
-            time.sleep(random_number)
+        #show the progress of the script with tqdm
+        for index, meme in tqdm(enumerate(meme_urls), total=len(meme_urls), desc="Downloading memes...", unit="memes"):
+            # random_number = random.random()
+            # time.sleep(random_number)
             url = "https://knowyourmeme.com" + meme.strip()
             # make a request to the website with headers
             response = requests.get(url, headers=headers)
@@ -228,7 +231,7 @@ with open('memes.txt', 'r') as f:
                 soup = BeautifulSoup(response.content, "html.parser")
                 meme = extract_data(soup, url)
                 memes.append(meme)
-                print(f"Finished {index} out of {len(meme_urls)}")
+                # print(f"Finished {index} out of {len(meme_urls)}")
             elif response.status_code == 403:
                 # If the response is 403, raise an exception
                 raise MemeEntryException("403 Error, your IP was banned.")
@@ -241,8 +244,8 @@ with open('memes.txt', 'r') as f:
             f.write(meme_urls[index])
         df = pd.DataFrame.from_dict(memes)
         df.to_csv('memes.csv',mode='a', header=False, index=False)
-        with open('finished.txt', 'w') as f:
-            f.write('Ip was banned')
+        with open('banned.txt', 'w') as f:
+            f.write('1')
         exit(2)
 
     except KeyboardInterrupt as e:
@@ -256,14 +259,15 @@ with open('memes.txt', 'r') as f:
     except Exception as e:
         print(e)
         with open("stopped_here.txt", "w") as f:
-            f.write(meme_urls[index])
+            f.write(meme_urls[index+1])
         df = pd.DataFrame.from_dict(memes)
         df.to_csv('memes.csv',mode='a', header=False, index=False)
         exit(1)
 
-
+df = pd.DataFrame.from_dict(memes)
+df.to_csv('memes.csv',mode='a', header=False, index=False)
 
 # At the end of your script, signal that it has finished successfully and there is no need to restart it
 with open('finished.txt', 'w') as f:
-    f.write('success')
+    f.write('0')
 
