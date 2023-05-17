@@ -2,11 +2,12 @@ import os
 import numpy as np
 from PIL import Image
 from shutil import copyfile
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
 from utils import load_model
 from matplotlib import pyplot as plt
 from datasets import get_dataloaders
-# from img2vec_pytorch import Img2Vec
-from img_to_vec import Img2Vec
+from img2vec_pytorch import Img2Vec
 from tqdm import tqdm
 import hdbscan
 import umap
@@ -60,27 +61,9 @@ if __name__ == '__main__':
     # Matrix to hold the image vectors
     # vec_mat = np.zeros((samples, vec_length))
 
-    # Retrieve the last saved vector index and label
-    last_saved = '54432_3082_5.npy'
-    last_saved_index, last_saved_label, _ = last_saved.strip('.npy').split('_')
-    last_saved_index, last_saved_label = int(last_saved_index), int(last_saved_label)
-
-
     print('Reading images...')
     cnt = 0
-    resume = True
     for inputs, labels in tqdm(combined_dataloader):
-        # Skip the images that have already been processed
-        if resume:
-            if cnt + len(inputs) <= last_saved_index:
-                cnt += len(inputs)
-                continue
-            else:
-                resume = False
-                inputs = inputs[last_saved_index - cnt:]
-                labels = labels[last_saved_index - cnt:]
-                cnt = last_saved_index
-        
         # Get the image vectors
         vecs = img2vec.get_vec(inputs, tensor=False)
         # Save the vectors to disk as float16
@@ -90,7 +73,6 @@ if __name__ == '__main__':
 
 
     filepaths = sorted(glob(os.path.join(embedding_output_dir, '*.npy')))
-    ground_truth = [int(fp.split('_')[-2]) for fp in filepaths]
     vecs = np.concatenate([np.load(fp) for fp in tqdm(filepaths)], axis=0)
 
     print('Preprocessing...')
@@ -101,14 +83,14 @@ if __name__ == '__main__':
     clusterer = hdbscan.HDBSCAN(min_cluster_size=20)
     cluster_labels = clusterer.fit_predict(reduced_feature_vectors)
 
-    print('Cluster analysis...')
-    print("Extrinsic Evaluation:")
-    ari = adjusted_rand_score(ground_truth, cluster_labels)
-    print("Adjusted Rand Index:", ari)
-    ami = adjusted_mutual_info_score(ground_truth, cluster_labels)
-    print("Adjusted Mutual Information:", ami)
-    fmi = fowlkes_mallows_score(ground_truth, cluster_labels)
-    print("Fowlkes-Mallows Index:", fmi)
+    # print('Cluster analysis...')
+    # print("Extrinsic Evaluation:")
+    # ari = adjusted_rand_score(ground_truth, cluster_labels)
+    # print("Adjusted Rand Index:", ari)
+    # ami = adjusted_mutual_info_score(ground_truth, cluster_labels)
+    # print("Adjusted Mutual Information:", ami)
+    # fmi = fowlkes_mallows_score(ground_truth, cluster_labels)
+    # print("Fowlkes-Mallows Index:", fmi)
 
 
     print('Reducing dimensions for visualization...')
