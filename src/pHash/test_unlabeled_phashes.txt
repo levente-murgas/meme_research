@@ -1,0 +1,15 @@
+D:/Memes2023_splitted/finetuning/train\pepe-silvia\pepe-silvia_0.jpg	299baedbe1730390
+D:/Memes2023_splitted/finetuning/train\pepe-silvia\pepe-silvia_9.jpg	099fa7d1d1331791
+D:/Memes2023_splitted/finetuning/train\pepe-silvia\pepe-silvia_12.jpg	299baedbe0730293
+D:/Memes2023_splitted/finetuning/train\pepe-silvia\pepe-silvia_13.jpg	9d5fa15ba409a11f
+D:/Memes2023_splitted/finetuning/train\great-gatsby-reaction-leonardo-dicaprio-toast\great-gatsby-reaction-leonardo-dicaprio-toast_10.jpg	b1a88b477089dcfa
+D:/Memes2023_splitted/finetuning/train\great-gatsby-reaction-leonardo-dicaprio-toast\great-gatsby-reaction-leonardo-dicaprio-toast_14.png	a3bdeb46435c1c29
+D:/Memes2023_splitted/finetuning/train\great-gatsby-reaction-leonardo-dicaprio-toast\great-gatsby-reaction-leonardo-dicaprio-toast_1.jpg	cd2399259b4fa1d8
+D:/Memes2023_splitted/finetuning/train\great-gatsby-reaction-leonardo-dicaprio-toast\great-gatsby-reaction-leonardo-dicaprio-toast_12.png	b12c3ac6799c4e53
+D:/Memes2023_splitted/finetuning/train\rare-pepe\rare-pepe_1.png	d52508d813a7d6de
+D:/Memes2023_splitted/finetuning/train\rare-pepe\rare-pepe_16.jpg	6dc9d293b2972334
+D:/Memes2023_splitted/finetuning/train\rare-pepe\rare-pepe_10.jpg	6549d3d9136f3603
+D:/Memes2023_splitted/finetuning/train\rare-pepe\rare-pepe_13.jpg	e7ed6240307a7a33
+D:/Memes2023_splitted/finetuning/train\pepe-punch\pepe-punch_0.png	3f91ccf307d1481e
+D:/Memes2023_splitted/finetuning/train\pepe-punch\pepe-punch_4.jpg	3f11cdd80b1ee4b4
+D:/Memes2023_splitted/finetuning/train\pepe-punch\pepe-punch_10.png	dd8731e94e9f3060

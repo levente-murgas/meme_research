@@ -10,12 +10,12 @@ import copy
 
 from model import initialize_model
 from datasets import get_dataloaders, get_dataloaders_hdf5
-from utils import save_plots, save_model
+from utils import save_plots, save_model, load_model_for_training
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
-def train_model(model, dataloader, criterion, optimizer, num_epochs=25):
+def train_model(model, dataloader, criterion, optimizer, num_epochs=25, start_epoch=None):
     training_start_time = time.time()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -31,7 +31,12 @@ def train_model(model, dataloader, criterion, optimizer, num_epochs=25):
     best_acc = 0.0
     best_epoch = 0
 
-    for epoch in tqdm(range(num_epochs),desc="Epochs", total=num_epochs, unit="epoch", mininterval=60):
+    if start_epoch is not None:
+        rangefor = range(start_epoch, start_epoch+num_epochs)
+    else:
+        rangefor = range(num_epochs)
+
+    for epoch in tqdm(rangefor,desc="Epochs", total=num_epochs, unit="epoch", mininterval=60):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
 
@@ -90,7 +95,8 @@ def train_model(model, dataloader, criterion, optimizer, num_epochs=25):
                 data_loading_time = total_time - forward_time - loss_time - opt_time
 
                 cnt += 1
-                if cnt % 1000 == 0:
+                print(f"Batch {cnt}/{number_of_batches}")
+                if cnt % 100 == 0:
                     print(f"Data loading time: {data_loading_time:.4f}s")
                     print(f"Forward time: {forward_time:.4f}s")
                     print(f"Loss time: {loss_time:.4f}s")
@@ -135,8 +141,9 @@ if __name__ == "__main__":
     model_name = "AlexNet"
 
     # Batch size for training (change depending on how much memory you have)
-    batch_size = 1024
+    batch_size = 32
 
+    number_of_batches = 410671 // batch_size
     # Number of epochs to train for 
     num_epochs = 10
 
@@ -147,20 +154,13 @@ if __name__ == "__main__":
     # Detect if we have a GPU available
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+    continue_training = False
     # print("Start splitting the dataset into train and test sets...")
     # train_test_split()
 
-    train_class_counts = pd.read_csv('C:/Users/Murgi/Documents/GitHub/meme_research/outputs/train_file_counts.csv')
+    train_class_counts = pd.read_csv('C:/Users/Murgi/Documents/GitHub/meme_research/outputs/tables/train_file_counts.csv')
     train_class_counts = {row['Class']: row['Count'] for row in train_class_counts.to_dict(orient='records')}
     num_classes = len(train_class_counts)
-
-    val_class_counts = pd.read_csv('C:/Users/Murgi/Documents/GitHub/meme_research/outputs/val_file_counts.csv')
-    val_class_counts = {row['Class']: row['Count'] for row in val_class_counts.to_dict(orient='records')}
-
-    train_val_class_counts_dict = {
-        'train': train_class_counts,
-        'val': val_class_counts
-    }
 
 
     print("Initializing the model...")
@@ -168,21 +168,19 @@ if __name__ == "__main__":
     model_ft, input_size = initialize_model(model_name, num_classes, feature_extract, use_pretrained=True)
 
     # print("Getting the dataloaders...")
-    dataloaders_dict = get_dataloaders(train_val_class_counts_dict, input_size=input_size, batch_size=batch_size, training=True)
+    dataloaders_dict = get_dataloaders(input_size=input_size, batch_size=batch_size, training=True)
     # print("Get combined dataloader...")
     # combined_dataloader = get_dataloaders(train_val_class_counts_dict, input_size=input_size, batch_size=batch_size, combined=True)
 
     # dataloaders_dict = get_dataloaders_hdf5(batch_size=batch_size, input_size=input_size)
-
-
-    # Send the model to GPU
-    model_ft = model_ft.to(device)
 
     # Gather the parameters to be optimized/updated in this run. If we are
     #  finetuning we will be updating all parameters. However, if we are 
     #  doing feature extract method, we will only update the parameters
     #  that we have just initialized, i.e. the parameters with requires_grad
     #  is True.
+    model_ft = model_ft.to(device)
+
     params_to_update = model_ft.parameters()
     print("Params to learn:")
     if feature_extract:
@@ -197,19 +195,25 @@ if __name__ == "__main__":
                 print("\t",name)
 
     # Observe that all parameters are being optimized
-    optimizer_ft = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
+    optimizer_ft = optim.Adam(params_to_update, lr=0.001)
 
     # Setup the loss fxn
     criterion = nn.CrossEntropyLoss()
 
     print("Training the model...")
-    # Train and evaluate
-    model_ft, train_acc, train_loss, val_acc, val_loss = train_model(model_ft, dataloaders_dict, criterion, optimizer_ft, num_epochs=num_epochs)
+    if continue_training:
+        file_path = "C:/Users/Murgi/Documents/GitHub/meme_research/outputs/AlexNet_feature_extract_True.pth"
+        model_ft, optimizer_ft, epoch, loss = load_model_for_training(file_path, model_ft, optimizer_ft)
+        # Train and evaluate
+        model_ft, train_acc, train_loss, val_acc, val_loss = train_model(model_ft, dataloaders_dict, criterion, optimizer_ft, num_epochs=num_epochs, start_epoch=epoch)
+    else:
+        # Train and evaluate
+        model_ft, train_acc, train_loss, val_acc, val_loss = train_model(model_ft, dataloaders_dict, criterion, optimizer_ft, num_epochs=num_epochs)
 
     # Save the trained model weights.
     # save_model(num_epochs, model_ft, optimizer_ft, criterion, feature_extract)
-    save_model(num_epochs, model_ft, optimizer_ft, criterion, feature_extract)
+    save_model(num_epochs, model_ft, optimizer_ft, criterion, feature_extract, continue_training=continue_training)
     # Save the loss and accuracy plots.
-    save_plots(model_ft, train_acc, val_acc, train_loss, val_loss, feature_extract)
+    save_plots(model_ft, train_acc, val_acc, train_loss, val_loss, feature_extract, continue_training=continue_training)
     # save_train_plots(model_ft, train_acc, train_loss, feature_extract)
     print('TRAINING COMPLETE')

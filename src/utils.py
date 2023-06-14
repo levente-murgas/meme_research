@@ -7,17 +7,26 @@ import numpy as np
 import pandas as pd
 
 matplotlib.style.use('ggplot')
-def save_model(epochs, model, optimizer, criterion, feature_extract):
+def save_model(epochs, model, optimizer, criterion, feature_extract, continue_training=False):
     """
     Function to save the trained model to disk.
     """
-    model_name = model.__class__.__name__
-    torch.save({
-                'epoch': epochs,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'loss': criterion,
-                }, f"C:/Users/Murgi/Documents/GitHub/meme_research/outputs/{model_name}_feature_extract_{feature_extract}.pth")
+    if continue_training:
+        model_name = model.__class__.__name__
+        torch.save({
+                    'epoch': epochs,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'loss': criterion,
+                    }, f"C:/Users/Murgi/Documents/GitHub/meme_research/outputs/{model_name}_feature_extract_{feature_extract}_CONTINUE.pth")
+    else:
+        model_name = model.__class__.__name__
+        torch.save({
+                    'epoch': epochs,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'loss': criterion,
+                    }, f"C:/Users/Murgi/Documents/GitHub/meme_research/outputs/{model_name}_feature_extract_{feature_extract}.pth")
     
 def save_model_2(epochs, model, optimizer, criterion, feature_extract):
     """
@@ -31,23 +40,36 @@ def save_model_2(epochs, model, optimizer, criterion, feature_extract):
                 'loss': criterion,
                 }, f"C:/Users/Murgi/Documents/GitHub/meme_research/outputs/{model_name}_feature_extract_{feature_extract}_ONALLDATA.pth")
     
-def load_model(model_name, feature_extract, on_all_data=True):
+def load_model(model_name, feature_extract, on_all_data=False, use_continued_train=True):
     """
     Function to load the saved model from disk.
     """
-    train_class_counts = pd.read_csv('C:/Users/Murgi/Documents/GitHub/meme_research/outputs/train_file_counts.csv')
-    train_class_counts = {row['class']: row['count'] for row in train_class_counts.to_dict(orient='records')}
-    num_classes = len(train_class_counts)
+    num_classes = 23082
     model, input_size = initialize_model(model_name, num_classes, feature_extract, use_pretrained=True)
     if on_all_data:
         checkpoint = torch.load(f'C:/Users/Murgi/Documents/GitHub/meme_research/outputs/{model_name}_feature_extract_{feature_extract}_ONALLDATA.pth', map_location='cpu')
+    elif use_continued_train:
+        checkpoint = torch.load(f'C:/Users/Murgi/Documents/GitHub/meme_research/outputs/models/{model_name}_feature_extract_{feature_extract}_CONTINUE.pth', map_location='cpu')
     else:
         checkpoint = torch.load(f'C:/Users/Murgi/Documents/GitHub/meme_research/outputs/{model_name}_feature_extract_{feature_extract}.pth', map_location='cpu')
     print('Loading trained model weights...')
     model.load_state_dict(checkpoint['model_state_dict'])
     return model, input_size
+
+def load_model_for_training(filepath, model, optimizer):
+    """
+    Function to load the saved model for continued training.
+    """
+    checkpoint = torch.load(filepath)
+
+    model.load_state_dict(checkpoint['model_state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    epoch = checkpoint['epoch']
+    loss = checkpoint['loss']
+
+    return model, optimizer, epoch, loss
     
-def save_plots(model, train_acc, valid_acc, train_loss, valid_loss, feature_extract):
+def save_plots(model, train_acc, valid_acc, train_loss, valid_loss, feature_extract, continue_training=False):
     """
     Function to save the loss and accuracy plots to disk.
     """
@@ -70,7 +92,10 @@ def save_plots(model, train_acc, valid_acc, train_loss, valid_loss, feature_extr
     plt.xlabel('Epochs')
     plt.ylabel('Accuracy')
     plt.legend()
-    plt.savefig(f"C:/Users/Murgi/Documents/GitHub/meme_research/outputs/accuracy_{model_name}_feature_extract_{feature_extract}.png")
+    if continue_training:
+        plt.savefig(f"C:/Users/Murgi/Documents/GitHub/meme_research/outputs/accuracy_{model_name}_feature_extract_{feature_extract}_CONTINUE.png")
+    else:
+        plt.savefig(f"C:/Users/Murgi/Documents/GitHub/meme_research/outputs/accuracy_{model_name}_feature_extract_{feature_extract}.png")
 
     # loss plots
     plt.figure(figsize=(10, 7))
@@ -85,7 +110,10 @@ def save_plots(model, train_acc, valid_acc, train_loss, valid_loss, feature_extr
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.legend()
-    plt.savefig(f"C:/Users/Murgi/Documents/GitHub/meme_research/outputs/loss_{model_name}_feature_extract_{feature_extract}.png")
+    if continue_training:
+        plt.savefig(f"C:/Users/Murgi/Documents/GitHub/meme_research/outputs/loss_{model_name}_feature_extract_{feature_extract}_CONTINUE.png")
+    else:
+        plt.savefig(f"C:/Users/Murgi/Documents/GitHub/meme_research/outputs/loss_{model_name}_feature_extract_{feature_extract}.png")
 
 def save_train_plots(model, train_acc, train_loss, feature_extract):
     """

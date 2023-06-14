@@ -22,7 +22,11 @@ class Img2Vec():
         self.model_name = model.__class__.__name__
 
         self.extraction_layer = self._get_layer(layer)
-
+        self.scaler = transforms.Resize((224, 224))
+        # For reddit dataset
+        self.normalize = transforms.Normalize(mean=[0.4994, 0.5191, 0.5488],
+                                              std=[0.3524, 0.3453, 0.3461])
+        self.to_tensor = transforms.ToTensor()
 
     def get_vec(self, img, tensor=False):
         """ Get vector embedding from PIL image
@@ -61,7 +65,7 @@ class Img2Vec():
                 else:
                     return my_embedding.numpy()[:, :, 0, 0]
         else:
-            image = img.to(self.device)
+            image = self.normalize(self.to_tensor(self.scaler(img))).unsqueeze(0).to(self.device)
 
             if self.model_name in ['AlexNet', 'VGG']:
                 my_embedding = torch.zeros(1, self.layer_output_size)

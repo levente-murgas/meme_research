@@ -1,0 +1,38 @@
+[
+    {
+        "cluster_no": "0",
+        "template_label": "pepe-silvia",
+        "confidence_score": "0.3103448275862069",
+        "images": [
+            "D:/Memes2023_splitted/finetuning/train\\pepe-silvia\\pepe-silvia_0.jpg",
+            "D:/Memes2023_splitted/finetuning/train\\pepe-silvia\\pepe-silvia_9.jpg",
+            "D:/Memes2023_splitted/finetuning/train\\pepe-silvia\\pepe-silvia_12.jpg",
+            "D:/Memes2023_splitted/finetuning/train\\pepe-silvia\\pepe-silvia_13.jpg",
+            "D:/Memes2023_splitted/finetuning/train\\pepe-silvia\\pepe-silvia_2.jpg",
+            "D:/Memes2023_splitted/finetuning/train\\pepe-silvia\\pepe-silvia_5.png",
+            "D:/Memes2023_splitted/finetuning/train\\pepe-silvia\\pepe-silvia_11.jpg",
+            "D:/Memes2023_splitted/finetuning/train\\pepe-silvia\\pepe-silvia_18.png",
+            "D:/Memes2023_splitted/finetuning/train\\pepe-silvia\\pepe-silvia_17.png",
+            "D:/Memes2023_splitted/finetuning/train\\great-gatsby-reaction-leonardo-dicaprio-toast\\great-gatsby-reaction-leonardo-dicaprio-toast_10.jpg",
+            "D:/Memes2023_splitted/finetuning/train\\great-gatsby-reaction-leonardo-dicaprio-toast\\great-gatsby-reaction-leonardo-dicaprio-toast_14.png",
+            "D:/Memes2023_splitted/finetuning/train\\great-gatsby-reaction-leonardo-dicaprio-toast\\great-gatsby-reaction-leonardo-dicaprio-toast_1.jpg",
+            "D:/Memes2023_splitted/finetuning/train\\great-gatsby-reaction-leonardo-dicaprio-toast\\great-gatsby-reaction-leonardo-dicaprio-toast_12.png",
+            "D:/Memes2023_splitted/finetuning/train\\great-gatsby-reaction-leonardo-dicaprio-toast\\great-gatsby-reaction-leonardo-dicaprio-toast_ref.jpg",
+            "D:/Memes2023_splitted/finetuning/train\\great-gatsby-reaction-leonardo-dicaprio-toast\\great-gatsby-reaction-leonardo-dicaprio-toast_7.jpg",
+            "D:/Memes2023_splitted/finetuning/train\\great-gatsby-reaction-leonardo-dicaprio-toast\\great-gatsby-reaction-leonardo-dicaprio-toast_11.jpg",
+            "D:/Memes2023_splitted/finetuning/train\\rare-pepe\\rare-pepe_1.png",
+            "D:/Memes2023_splitted/finetuning/train\\rare-pepe\\rare-pepe_16.jpg",
+            "D:/Memes2023_splitted/finetuning/train\\rare-pepe\\rare-pepe_10.jpg",
+            "D:/Memes2023_splitted/finetuning/train\\rare-pepe\\rare-pepe_13.jpg",
+            "D:/Memes2023_splitted/finetuning/train\\pepe-punch\\pepe-punch_0.png",
+            "D:/Memes2023_splitted/finetuning/train\\pepe-punch\\pepe-punch_4.jpg",
+            "D:/Memes2023_splitted/finetuning/train\\pepe-punch\\pepe-punch_10.png",
+            "D:/Memes2023_splitted/finetuning/train\\pepe-punch\\pepe-punch_13.jpg",
+            "D:/Memes2023_splitted/finetuning/train\\pepe-punch\\pepe-punch_14.png",
+            "D:/Memes2023_splitted/finetuning/train\\pepe-punch\\pepe-punch_18.png",
+            "D:/Memes2023_splitted/finetuning/train\\pepe-punch\\pepe-punch_2.jpg",
+            "D:/Memes2023_splitted/finetuning/train\\pepe-punch\\pepe-punch_3.jpg",
+            "D:/Memes2023_splitted/finetuning/train\\pepe-punch\\pepe-punch_1.jpg"
+        ]
+    }
+]
